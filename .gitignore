@@ -1,7 +1,7 @@
 # Compiled source #
 ###################
 *.com
-*.class
+.class
 *.dll
 *.exe
 *.o
@@ -15,7 +15,6 @@
 *.dmg
 *.gz
 *.iso
-*.jar
 *.rar
 *.tar
 *.zip
