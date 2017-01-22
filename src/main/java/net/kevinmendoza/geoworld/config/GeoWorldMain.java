@@ -44,11 +44,17 @@ import net.kevinmendoza.geoworld.spongehooks.OverWorldModifier;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 
-@Plugin(id = GeoWorldMain.ID, name = GeoWorldMain.NAME, version = GeoWorldMain.VERSION)
+@Plugin(
+id=GeoWorldMain.ID,
+name=GeoWorldMain.NAME,
+version=GeoWorldMain.VERSION,
+url="http://www.kevinmendoza.net/geoworld-a-minecraft-geology-addon/",
+authors = {"El_Minadero"},
+description = "A Geologic Minecraft Mod")
 public class GeoWorldMain extends Module {
 
 	public static final String ID = "geoworld";
-	public static final String NAME = "GeoWorld. Module 0 of GeoWorld";
+	public static final String NAME = "GeoWorld";
 	public static final String VERSION = "1.0.2a";
 	public static final String[] GEOWORLD_IDS = {"igneouspack"};
 	
