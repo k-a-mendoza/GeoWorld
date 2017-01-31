@@ -3,8 +3,6 @@ package net.kevinmendoza.geoworld.proceduralgeneration.shapes;
 import java.util.Random;
 
 import com.flowpowered.math.vector.Vector2i;
-
-import net.kevinmendoza.geoworld.geology.region.GeologicRegionPrecursor;
 import net.kevinmendoza.geoworld.proceduralgeneration.probability.Distribution;
 import net.kevinmendoza.geoworld.proceduralgeneration.probability.DistributionFactory;
 import ninja.leaping.configurate.ConfigurationNode;

@@ -51,27 +51,22 @@ version=GeoWorldMain.VERSION,
 url="http://www.kevinmendoza.net/geoworld-a-minecraft-geology-addon/",
 authors = {"El_Minadero"},
 description = "A Geologic Minecraft Mod")
-public class GeoWorldMain extends Module {
+public class GeoWorldMain {
 
 	public static final String ID = "geoworld";
 	public static final String NAME = "GeoWorld";
 	public static final String VERSION = "1.0.2a";
 	public static final String[] GEOWORLD_IDS = {"igneouspack"};
-	
+	@Inject @DefaultConfig(sharedRoot = true)ConfigurationLoader<CommentedConfigurationNode> configLoader;
+	@Inject @DefaultConfig(sharedRoot = true) File config;
+	@Inject PluginContainer container;
+	@Inject Logger logger;
+	private Debug log;
 	private OverWorldModifier modifier;
 	private WorldArchetype worldArchetype;
-
-	@Inject
-	public GeoWorldMain(Logger logger, @DefaultConfig(sharedRoot = true) File config, 
-			@DefaultConfig(sharedRoot = true)ConfigurationLoader<CommentedConfigurationNode> configLoader,
-			PluginContainer container) {
-		super(logger, config,configLoader, container);
-		defaults.onLoad(VERSION);
-		module = this;
-	}
 	@Listener
 	public void onGamePreInitialization(GamePreInitializationEvent event) {
-		module 	 = this;
+		log = new Debug(logger);
 	}
 	
 	@Listener
@@ -94,18 +89,12 @@ public class GeoWorldMain extends Module {
 				geologyContainers.addAll(geoworldModule.getGeologicContainers());
 			}
 		}
-		modifier = new OverWorldModifier(geologyContainers,getDebugger());
+		modifier = new OverWorldModifier(geologyContainers,log);
 		Sponge.getRegistry().register(WorldGeneratorModifier.class , modifier);
 		worldArchetype = WorldArchetype.builder()
 				.from(WorldArchetypes.OVERWORLD)
 				.generatorModifiers(modifier)
 				.build("geoworld", "Geo World");
 	}
-
-	@Override
-	public List<GeologicContainer> getGeologicContainers() {
-		return null;
-	}
-	
 	
 }

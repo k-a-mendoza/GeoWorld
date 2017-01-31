@@ -15,5 +15,9 @@ public abstract class GeologicObject implements GeologicObjectInterface {
 	public boolean isInObject(Vector2i center) {
 		return region.isInside(center);
 	}
+	
+	public Region getRegion() {
+		return region;
+	}
 
 }

@@ -9,7 +9,6 @@ public interface GeoWorldPluginInterface {
 
 	
 	public GeoWorldPluginInterface GetInstance();
-	public ConfigurationNode getConfig();
 	public Debug getDebugger();
 	
 	public List<GeologicContainer> getGeologicContainers();

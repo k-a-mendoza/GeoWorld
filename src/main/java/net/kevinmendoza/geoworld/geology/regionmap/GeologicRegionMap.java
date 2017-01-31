@@ -23,7 +23,7 @@ public abstract class GeologicRegionMap implements GeologicContainer {
 	private GeologicRegionMapCache<GeologicObjectInterface> regionCache;
 	private long seed;
 	
-	public GeologicRegionMap(GeologicRegionMapBuilderInterface builder) {
+	public GeologicRegionMap(GeologicRegionMapBuilderGetInterface builder) {
 		this.spacing   	= builder.getSpacing();
 		this.frequency 	= builder.getFrequency();
 		this.order 	  	= builder.getOrder();
