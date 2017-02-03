@@ -25,8 +25,8 @@ import org.spongepowered.api.world.storage.WorldProperties;
 
 import com.flowpowered.math.vector.Vector2i;
 
-import net.kevinmendoza.geoworld.config.Debug;
-import net.kevinmendoza.geoworld.geology.GeologicContainer;
+import net.kevinmendoza.geoworldlibrary.utilities.Debug;
+import net.kevinmendoza.geoworldlibrary.geology.GeologicContainer;
 
 public class OverWorldModifier extends GeoWorldGeneratorModifier implements WorldGeneratorModifier {
 

@@ -1,1 +1,3 @@
 rootProject.name = 'GeoWorld'
+include ':GeoWorldLibrary'
+project(':GeoWorldLibrary').projectDir = new File(settingsDir,'../GeoWorldLibrary')

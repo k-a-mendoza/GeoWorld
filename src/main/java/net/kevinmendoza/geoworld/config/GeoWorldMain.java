@@ -39,7 +39,9 @@ import org.spongepowered.api.world.storage.WorldProperties;
 
 import com.google.inject.Inject;
 
-import net.kevinmendoza.geoworld.geology.GeologicContainer;
+import net.kevinmendoza.geoworldlibrary.geology.GeologicContainer;
+import net.kevinmendoza.geoworldlibrary.utilities.Debug;
+import net.kevinmendoza.geoworldlibrary.utilities.GeoWorldPluginInterface;
 import net.kevinmendoza.geoworld.spongehooks.OverWorldModifier;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
@@ -89,12 +91,14 @@ public class GeoWorldMain {
 				geologyContainers.addAll(geoworldModule.getGeologicContainers());
 			}
 		}
-		modifier = new OverWorldModifier(geologyContainers,log);
-		Sponge.getRegistry().register(WorldGeneratorModifier.class , modifier);
-		worldArchetype = WorldArchetype.builder()
-				.from(WorldArchetypes.OVERWORLD)
-				.generatorModifiers(modifier)
-				.build("geoworld", "Geo World");
+		if(!geologyContainers.isEmpty()) {
+			modifier = new OverWorldModifier(geologyContainers,log);
+			Sponge.getRegistry().register(WorldGeneratorModifier.class , modifier);
+			worldArchetype = WorldArchetype.builder()
+					.from(WorldArchetypes.OVERWORLD)
+					.generatorModifiers(modifier)
+					.build("geoworld", "Geo World");
+		}
 	}
 	
 }

@@ -19,4 +19,5 @@ repositories {
 
 dependencies {
     compile 'org.spongepowered:spongeapi:5.0.0'
+    compile project(':GeoWorldLibrary')
 }

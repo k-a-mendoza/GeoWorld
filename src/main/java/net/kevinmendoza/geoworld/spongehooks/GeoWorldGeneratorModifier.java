@@ -22,8 +22,8 @@ import org.spongepowered.api.world.gen.WorldGenerator;
 import com.flowpowered.math.vector.Vector2i;
 import com.flowpowered.math.vector.Vector3i;
 
-import net.kevinmendoza.geoworld.config.Debug;
-import net.kevinmendoza.geoworld.geology.GeologicContainer;
+import net.kevinmendoza.geoworldlibrary.utilities.Debug;
+import net.kevinmendoza.geoworldlibrary.geology.GeologicContainer;
 
 public class GeoWorldGeneratorModifier  {
 
