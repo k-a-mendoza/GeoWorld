@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.DefaultConfig;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartingServerEvent;
@@ -39,12 +40,12 @@ import org.spongepowered.api.world.storage.WorldProperties;
 
 import com.google.inject.Inject;
 
-import net.kevinmendoza.geoworldlibrary.geology.GeologicContainer;
+import net.kevinmendoza.geoworld.spongehooks.GeneratorModifierAccess;
 import net.kevinmendoza.geoworldlibrary.utilities.Debug;
-import net.kevinmendoza.geoworldlibrary.utilities.GeoWorldPluginInterface;
-import net.kevinmendoza.geoworld.spongehooks.OverWorldModifier;
+import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
+import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 
 @Plugin(
 id=GeoWorldMain.ID,
@@ -59,16 +60,18 @@ public class GeoWorldMain {
 	public static final String NAME = "GeoWorld";
 	public static final String VERSION = "1.0.2a";
 	public static final String[] GEOWORLD_IDS = {"igneouspack"};
-	@Inject @DefaultConfig(sharedRoot = true)ConfigurationLoader<CommentedConfigurationNode> configLoader;
+	@Inject @DefaultConfig(sharedRoot = true)ConfigurationLoader<CommentedConfigurationNode> loader;
 	@Inject @DefaultConfig(sharedRoot = true) File config;
 	@Inject PluginContainer container;
-	@Inject Logger logger;
-	private Debug log;
-	private OverWorldModifier modifier;
+	@Inject 
+	private static Logger logger;
+	private GeoWorldConfiguration defaults;
 	private WorldArchetype worldArchetype;
+	private static Debug log;
+	private static List<PluginContainer> validPluginContainers;
 	@Listener
-	public void onGamePreInitialization(GamePreInitializationEvent event) {
-		log = new Debug(logger);
+	public void onGamePreInitialization(GamePreInitializationEvent event) throws IOException, ObjectMappingException {
+		createConfigs();
 	}
 	
 	@Listener
@@ -82,23 +85,41 @@ public class GeoWorldMain {
 	
 	@Listener
 	public void onGameInitialization(GameInitializationEvent event) {
-		List<GeologicContainer> geologyContainers = new ArrayList<>();
+		validPluginContainers = new ArrayList<>();
 		for(String ids: GEOWORLD_IDS) {
 			Optional<PluginContainer> pluginOptional = Sponge.getPluginManager().getPlugin(ids);
 			if(pluginOptional.isPresent()) {
 				PluginContainer container = pluginOptional.get();
-				GeoWorldPluginInterface geoworldModule = (GeoWorldPluginInterface)container.getInstance().get();
-				geologyContainers.addAll(geoworldModule.getGeologicContainers());
+				validPluginContainers.add(container);
 			}
 		}
-		if(!geologyContainers.isEmpty()) {
-			modifier = new OverWorldModifier(geologyContainers,log);
-			Sponge.getRegistry().register(WorldGeneratorModifier.class , modifier);
+		
+		if(!validPluginContainers.isEmpty()) {
+			Sponge.getRegistry().register(WorldGeneratorModifier.class , GeneratorModifierAccess.GetWorldGeneratorModifier());
 			worldArchetype = WorldArchetype.builder()
 					.from(WorldArchetypes.OVERWORLD)
-					.generatorModifiers(modifier)
+					.generatorModifiers(GeneratorModifierAccess.GetWorldGeneratorModifier())
 					.build("geoworld", "Geo World");
 		}
 	}
 	
+	@Listener
+	public void onGameReload(GameReloadEvent event) throws IOException, ObjectMappingException {
+		createConfigs();
+	}
+
+	public void createConfigs() throws IOException, ObjectMappingException {
+		ConfigurationNode node = loader.createEmptyNode();
+		node.setValue(GeoWorldConfiguration.type, defaults == null ? (defaults= new GeoWorldConfiguration()) : defaults);
+		loader.save(node);
+	}
+
+	public static Logger GetLog() {
+		return logger;
+	}
+
+	public static List<PluginContainer> GetValidPluginContainers() {
+		return validPluginContainers;
+	}
+
 }

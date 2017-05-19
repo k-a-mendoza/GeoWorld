@@ -19,14 +19,16 @@ package net.kevinmendoza.geoworld.spongehooks;
 import java.util.List;
 
 import org.spongepowered.api.data.DataContainer;
+import org.spongepowered.api.plugin.PluginContainer;
+import org.spongepowered.api.world.gen.GenerationPopulator;
 import org.spongepowered.api.world.gen.WorldGenerator;
 import org.spongepowered.api.world.gen.WorldGeneratorModifier;
 import org.spongepowered.api.world.storage.WorldProperties;
 
 import com.flowpowered.math.vector.Vector2i;
 
+import net.kevinmendoza.geoworldlibrary.geology.recursivegeology.IGeology;
 import net.kevinmendoza.geoworldlibrary.utilities.Debug;
-import net.kevinmendoza.geoworldlibrary.geology.GeologicContainer;
 
 public class OverWorldModifier extends GeoWorldGeneratorModifier implements WorldGeneratorModifier {
 
@@ -34,18 +36,17 @@ public class OverWorldModifier extends GeoWorldGeneratorModifier implements Worl
 	public String getId()   { return "geoworld"; }
 	@Override
 	public String getName() { return "GeoWorld"; }
-	private List<GeologicContainer> containers;
-	public OverWorldModifier(List<GeologicContainer> geologyContainers,Debug debug){
-		super(geologyContainers,debug);
+	
+	public OverWorldModifier(){
+		super();
 	}
 	
 	@Override
 	public void modifyWorldGenerator(WorldProperties world,
 			DataContainer settings, WorldGenerator worldGenerator) {
 		removeDefaultOres(worldGenerator);
-		for(GeologicContainer container : containers) 
-		{ container.setSeed(world.getSeed()); }
-		worldGenerator.getGenerationPopulators().add(new GeoWorldPopulator());
+		GenerationPopulator defaultBasePopulator = worldGenerator.getBaseGenerationPopulator();
+		worldGenerator.setBaseGenerationPopulator(new GeoWorldPopulator(defaultBasePopulator));
 	}
 	
 }
