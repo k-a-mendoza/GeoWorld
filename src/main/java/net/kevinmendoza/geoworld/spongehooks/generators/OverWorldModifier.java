@@ -14,7 +14,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-package net.kevinmendoza.geoworld.spongehooks;
+package net.kevinmendoza.geoworld.spongehooks.generators;
 
 import java.util.List;
 
@@ -27,10 +27,12 @@ import org.spongepowered.api.world.storage.WorldProperties;
 
 import com.flowpowered.math.vector.Vector2i;
 
+import net.kevinmendoza.geoworld.main.GeoWorldMain;
+import net.kevinmendoza.geoworld.spongehooks.populators.DefaultPopulator;
 import net.kevinmendoza.geoworldlibrary.geology.recursivegeology.IGeology;
 import net.kevinmendoza.geoworldlibrary.utilities.Debug;
 
-public class OverWorldModifier extends GeoWorldGeneratorModifier implements WorldGeneratorModifier {
+class OverWorldModifier extends GeoWorldGeneratorModifier implements WorldGeneratorModifier {
 
 	@Override
 	public String getId()   { return "geoworld"; }
@@ -46,7 +48,8 @@ public class OverWorldModifier extends GeoWorldGeneratorModifier implements Worl
 			DataContainer settings, WorldGenerator worldGenerator) {
 		removeDefaultOres(worldGenerator);
 		GenerationPopulator defaultBasePopulator = worldGenerator.getBaseGenerationPopulator();
-		worldGenerator.setBaseGenerationPopulator(new GeoWorldPopulator(defaultBasePopulator));
+		GeoWorldMain.PluginMain.getLog().debug("setting base populator");
+		worldGenerator.setBaseGenerationPopulator(new DefaultPopulator(defaultBasePopulator));
 	}
 	
 }

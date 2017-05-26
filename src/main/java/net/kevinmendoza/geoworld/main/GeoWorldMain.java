@@ -15,7 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-package net.kevinmendoza.geoworld.config;
+package net.kevinmendoza.geoworld.main;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,21 +26,27 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.DefaultConfig;
+import org.spongepowered.api.data.manipulator.mutable.entity.JoinData;
+import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartingServerEvent;
+import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
+import org.spongepowered.api.world.World;
 import org.spongepowered.api.world.WorldArchetype;
 import org.spongepowered.api.world.WorldArchetypes;
 import org.spongepowered.api.world.gen.WorldGeneratorModifier;
+import org.spongepowered.api.world.gen.WorldGeneratorModifiers;
 import org.spongepowered.api.world.storage.WorldProperties;
 
 import com.google.inject.Inject;
 
-import net.kevinmendoza.geoworld.spongehooks.GeneratorModifierAccess;
+import net.kevinmendoza.geoworld.configuration.GeoWorldConfiguration;
+import net.kevinmendoza.geoworld.spongehooks.generators.GeneratorModifierAccess;
 import net.kevinmendoza.geoworldlibrary.utilities.Debug;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
@@ -56,19 +62,37 @@ authors = {"El_Minadero"},
 description = "A Geologic Minecraft Mod")
 public class GeoWorldMain {
 
-	public static final String ID = "geoworld";
-	public static final String NAME = "GeoWorld";
-	public static final String VERSION = "1.0.2a";
-	public static final String[] GEOWORLD_IDS = {"igneouspack"};
-	@Inject @DefaultConfig(sharedRoot = true)ConfigurationLoader<CommentedConfigurationNode> loader;
-	@Inject @DefaultConfig(sharedRoot = true) File config;
-	@Inject PluginContainer container;
+	public  static final String ID = "geoworld";
+	public  static final String NAME = "GeoWorld";
+	public  static final String VERSION = "1.0.2a";
+	public  static final String[] GEOWORLD_IDS = {"igneouspack"};
+	private static WorldArchetype GEOWORLD;
+	public  static GeoWorldMain PluginMain;
+	
 	@Inject 
-	private static Logger logger;
+	@DefaultConfig(sharedRoot = true)
+	ConfigurationLoader<CommentedConfigurationNode> loader;
+	@Inject @DefaultConfig(sharedRoot = true) File config;
+	@Inject 
+	private PluginContainer container;
+	@Inject 
+	private Logger logger;
 	private GeoWorldConfiguration defaults;
-	private WorldArchetype worldArchetype;
-	private static Debug log;
-	private static List<PluginContainer> validPluginContainers;
+	private List<PluginContainer> validPluginContainers;
+	
+	public GeoWorldMain() {
+		PluginMain = this;
+	}
+	@Listener
+	public void onPlayerJoin(ClientConnectionEvent.Join event)  {
+		Player player = event.getTargetEntity();
+		if(player.get(JoinData.class).isPresent()) {
+			World geoWorld = Sponge.getGame().getServer().getWorld("geoworld").get();
+			player.setLocation(geoWorld.getSpawnLocation());
+		}
+		
+	}
+	
 	@Listener
 	public void onGamePreInitialization(GamePreInitializationEvent event) throws IOException, ObjectMappingException {
 		createConfigs();
@@ -77,7 +101,12 @@ public class GeoWorldMain {
 	@Listener
 	public void onGameStartingServerEvent(GameStartingServerEvent event) {
 		try {
-			final WorldProperties properties = Sponge.getServer().createWorldProperties("geoworld", worldArchetype);
+			GEOWORLD = WorldArchetype.builder()
+	        		.from(WorldArchetypes.OVERWORLD)
+	        		.generatorModifiers(GeneratorModifierAccess
+	        				.GetWorldGeneratorModifier())
+	                .build("geoworld", "GeoWorld");
+			final WorldProperties properties = Sponge.getServer().createWorldProperties("geoworld",GEOWORLD);
 			Sponge.getServer().loadWorld(properties);
 		} catch (IOException ex) {
 		}
@@ -95,12 +124,8 @@ public class GeoWorldMain {
 		}
 		
 		if(!validPluginContainers.isEmpty()) {
-			Sponge.getRegistry().register(WorldGeneratorModifier.class , GeneratorModifierAccess.GetWorldGeneratorModifier());
-			worldArchetype = WorldArchetype.builder()
-					.from(WorldArchetypes.OVERWORLD)
-					.generatorModifiers(GeneratorModifierAccess.GetWorldGeneratorModifier())
-					.build("geoworld", "Geo World");
 		}
+		Sponge.getRegistry().register(WorldGeneratorModifier.class , GeneratorModifierAccess.GetWorldGeneratorModifier());
 	}
 	
 	@Listener
@@ -108,18 +133,26 @@ public class GeoWorldMain {
 		createConfigs();
 	}
 
-	public void createConfigs() throws IOException, ObjectMappingException {
+	private void createConfigs() throws IOException, ObjectMappingException {
 		ConfigurationNode node = loader.createEmptyNode();
 		node.setValue(GeoWorldConfiguration.type, defaults == null ? (defaults= new GeoWorldConfiguration()) : defaults);
 		loader.save(node);
 	}
 
-	public static Logger GetLog() {
+	public Logger getLog() {
 		return logger;
 	}
 
-	public static List<PluginContainer> GetValidPluginContainers() {
+	public List<PluginContainer> getValidPluginContainers() {
 		return validPluginContainers;
+	}
+	
+	public PluginContainer GetPluginContainer() {
+		if(container==null)
+			logger.info("isNull");
+		else
+			logger.debug("isNotNull");
+		return container;
 	}
 
 }

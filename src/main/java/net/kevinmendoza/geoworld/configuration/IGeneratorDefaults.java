@@ -1,4 +1,4 @@
-package net.kevinmendoza.geoworld.config;
+package net.kevinmendoza.geoworld.configuration;
 
 public interface IGeneratorDefaults {
 	boolean removeVanillaOres();

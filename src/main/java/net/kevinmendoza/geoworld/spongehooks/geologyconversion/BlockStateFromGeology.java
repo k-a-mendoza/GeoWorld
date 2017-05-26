@@ -1,6 +1,7 @@
-package net.kevinmendoza.geoworld.spongehooks;
+package net.kevinmendoza.geoworld.spongehooks.geologyconversion;
 
 import java.util.HashMap;
+import java.util.HashSet;
 
 import org.slf4j.Logger;
 import org.spongepowered.api.world.gen.WorldGeneratorModifier;
@@ -8,12 +9,13 @@ import org.spongepowered.api.world.gen.WorldGeneratorModifier;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
-import net.kevinmendoza.geoworld.config.ConfigBind;
+import net.kevinmendoza.geoworld.configuration.ConfigBind;
 import net.kevinmendoza.geoworldlibrary.utilities.IDebug;
 
-public final class GeneratorModifierAccess {
-
-	private static OverWorldModifier overWorldModifier;
+public final class BlockStateFromGeology {
+	
+	private HashSet<BlockContainer> blockContainerIndex;
+	
 	private static IDebug debugger;
 	private static Injector injector;
 
@@ -22,13 +24,6 @@ public final class GeneratorModifierAccess {
 			injector = Guice.createInjector(new ConfigBind());
 		}
 		return injector;
-	}
-	
-	public static WorldGeneratorModifier GetWorldGeneratorModifier() {
-		if(overWorldModifier==null) {
-			overWorldModifier = GetInjector().getInstance(OverWorldModifier.class);
-		}
-		return overWorldModifier;
 	}
 
 }

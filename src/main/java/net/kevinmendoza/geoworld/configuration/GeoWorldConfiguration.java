@@ -1,19 +1,20 @@
-package net.kevinmendoza.geoworld.config;
+package net.kevinmendoza.geoworld.configuration;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import com.google.common.reflect.TypeToken;
+
 import ninja.leaping.configurate.objectmapping.Setting;
 import ninja.leaping.configurate.objectmapping.serialize.ConfigSerializable;
 
 @ConfigSerializable
-class GeoWorldConfiguration {
-	static final TypeToken<GeoWorldConfiguration> type = TypeToken.of(GeoWorldConfiguration.class);
+public class GeoWorldConfiguration {
+	public static final TypeToken<GeoWorldConfiguration> type = TypeToken.of(GeoWorldConfiguration.class);
 	@Setting
-	IGlobalDefaults globalDefaults;
+	GlobalDefaults globalDefaults;
 	@Setting
-	IGeneratorDefaults generatorDefaults;
+	GeneratorDefaults generatorDefaults;
 
 	public GeoWorldConfiguration() {
 		globalDefaults 		= new GlobalDefaults();

@@ -1,4 +1,4 @@
-package net.kevinmendoza.geoworld.config;
+package net.kevinmendoza.geoworld.configuration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +16,7 @@ class GlobalDefaults implements IGlobalDefaults {
 	
 	GlobalDefaults(){
 		pluginIDs = new ArrayList<>();
+		pluginIDs.add("igneouspack");
 		
 	}
 	public boolean isValidPluginID(String string) { return pluginIDs.contains(string); }

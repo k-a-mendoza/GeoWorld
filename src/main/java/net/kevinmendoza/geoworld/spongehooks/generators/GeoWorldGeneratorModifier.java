@@ -1,4 +1,4 @@
-package net.kevinmendoza.geoworld.spongehooks;
+package net.kevinmendoza.geoworld.spongehooks.generators;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,8 +24,8 @@ import com.flowpowered.math.vector.Vector2i;
 import com.flowpowered.math.vector.Vector3i;
 import com.google.inject.Inject;
 
-import net.kevinmendoza.geoworld.config.GeoWorldMain;
-import net.kevinmendoza.geoworld.config.IGeneratorDefaults;
+import net.kevinmendoza.geoworld.configuration.IGeneratorDefaults;
+import net.kevinmendoza.geoworld.main.GeoWorldMain;
 import net.kevinmendoza.geoworldlibrary.geology.recursivegeology.IGeology;
 import net.kevinmendoza.geoworldlibrary.utilities.Debug;
 import net.kevinmendoza.geoworldlibrary.utilities.GeoWorldPlugin;
@@ -35,10 +35,9 @@ public class GeoWorldGeneratorModifier  {
 	@Inject
 	IGeneratorDefaults generatorDefaults;
 
-	private final List<PluginContainer> geologyContainers;
+	private List<PluginContainer> geologyContainers;
 
 	public GeoWorldGeneratorModifier() {
-		this.geologyContainers = GeoWorldMain.GetValidPluginContainers();
 	}
 	
 	protected void removeDefaultOres(WorldGenerator generator) {
@@ -55,6 +54,8 @@ public class GeoWorldGeneratorModifier  {
 	}
 	
 	protected List<IGeology> getIGeologyList(long seed){
+		if(geologyContainers==null)
+			this.geologyContainers = GeoWorldMain.PluginMain.getValidPluginContainers();
 		List<IGeology> geologyList = new ArrayList<>();
 		for(PluginContainer container : geologyContainers) {
 			GeoWorldPlugin geoWorldPlugin = (GeoWorldPlugin)container;
@@ -63,24 +64,5 @@ public class GeoWorldGeneratorModifier  {
 		return geologyList;
 	}
 
-	/*protected class GeoWorldPopulator implements GenerationPopulator {
-
-		public GeoWorldPopulator() {}
-		
-		@Override
-	    public void populate(World world, MutableBlockVolume buffer, ImmutableBiomeVolume biomes) {
-			Vector3i min = buffer.getBlockMin();
-			Vector3i max = buffer.getBlockMax();
-			long start = System.nanoTime();
-			for(GeologicContainer container : geologyContainers) 
-			{ container.primeGenerationAt(new Vector2i(min.getX(),min.getZ())); }
-			for(GeologicContainer container : geologyContainers) 
-			{ container.getColumnAt(new Vector2i(min.getX(), min.getZ())); }
-			double end_time = System.nanoTime();
-			double difference = (end_time - start)/1e6;
-			debug.log("ms to generate:"+difference);
-		}
-
-	}*/
 }
 
