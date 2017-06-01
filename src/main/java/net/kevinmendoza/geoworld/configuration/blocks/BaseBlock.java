@@ -1,19 +1,30 @@
 package net.kevinmendoza.geoworld.configuration.blocks;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
 import org.spongepowered.api.block.BlockState;
 
-class BaseBlock {
+import ninja.leaping.configurate.objectmapping.Setting;
+import ninja.leaping.configurate.objectmapping.serialize.ConfigSerializable;
 
-	private ChangeConditions temperatureChange;
-	private ChangeConditions pressureChange;
-	private ChangeConditions hydrothermalChange;
-	private ChangeConditions weatheringChange;
+@ConfigSerializable
+class BaseBlock {
+	@Setting
+	private List<String> textures = new ArrayList<>();
+	@Setting
+	private HashMap<String,ChangeConditions> behavior = new HashMap<>();
 	
-	public BaseBlock() {
-		temperatureChange = new ChangeConditions();
-		pressureChange 	  = new ChangeConditions();
-		hydrothermalChange= new ChangeConditions();
-		weatheringChange  = new ChangeConditions();
+	
+	void setConditions(String key, ChangeConditions conditions) {
+		behavior.put(key, conditions);
 	}
+	
+	void setTextures(String[] string) {
+		for(int i = 0;i<string.length;i++)
+			textures.add(string[i]);
+	}
+	
 	
 }

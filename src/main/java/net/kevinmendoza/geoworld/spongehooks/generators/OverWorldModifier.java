@@ -37,7 +37,7 @@ class OverWorldModifier extends GeoWorldGeneratorModifier implements WorldGenera
 	@Override
 	public String getId()   { return "geoworld"; }
 	@Override
-	public String getName() { return "GeoWorld"; }
+	public String getName() { return "geoworld"; }
 	
 	public OverWorldModifier(){
 		super();

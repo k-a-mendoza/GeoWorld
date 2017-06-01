@@ -68,6 +68,7 @@ public class GeoWorldMain {
 	public  static final String[] GEOWORLD_IDS = {"igneouspack"};
 	private static WorldArchetype GEOWORLD;
 	public  static GeoWorldMain PluginMain;
+	private static WorldGeneratorModifier modifier;
 	
 	@Inject 
 	@DefaultConfig(sharedRoot = true)
@@ -99,12 +100,12 @@ public class GeoWorldMain {
 	}
 	
 	@Listener
-	public void onGameStartingServerEvent(GameStartingServerEvent event) {
+	public void onGameStartingServerEvent(GameStartingServerEvent event) throws IOException, ObjectMappingException {
+		createConfigs();
 		try {
 			GEOWORLD = WorldArchetype.builder()
 	        		.from(WorldArchetypes.OVERWORLD)
-	        		.generatorModifiers(GeneratorModifierAccess
-	        				.GetWorldGeneratorModifier())
+	        		.generatorModifiers(modifier)
 	                .build("geoworld", "GeoWorld");
 			final WorldProperties properties = Sponge.getServer().createWorldProperties("geoworld",GEOWORLD);
 			Sponge.getServer().loadWorld(properties);
@@ -115,6 +116,8 @@ public class GeoWorldMain {
 	@Listener
 	public void onGameInitialization(GameInitializationEvent event) {
 		validPluginContainers = new ArrayList<>();
+		modifier = GeneratorModifierAccess.GetWorldGeneratorModifier();
+		Sponge.getRegistry().register(WorldGeneratorModifier.class , modifier);
 		for(String ids: GEOWORLD_IDS) {
 			Optional<PluginContainer> pluginOptional = Sponge.getPluginManager().getPlugin(ids);
 			if(pluginOptional.isPresent()) {
@@ -125,13 +128,12 @@ public class GeoWorldMain {
 		
 		if(!validPluginContainers.isEmpty()) {
 		}
-		Sponge.getRegistry().register(WorldGeneratorModifier.class , GeneratorModifierAccess.GetWorldGeneratorModifier());
 	}
 	
-	@Listener
+/*	@Listener
 	public void onGameReload(GameReloadEvent event) throws IOException, ObjectMappingException {
 		createConfigs();
-	}
+	}*/
 
 	private void createConfigs() throws IOException, ObjectMappingException {
 		ConfigurationNode node = loader.createEmptyNode();
