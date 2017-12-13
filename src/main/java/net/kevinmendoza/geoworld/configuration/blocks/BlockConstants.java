@@ -2,14 +2,16 @@ package net.kevinmendoza.geoworld.configuration.blocks;
 
 import java.util.HashMap;
 
+import net.kevinmendoza.geoworldlibrary.geology.compositerockdata.singleagedata.AlterationType;
+
 class BlockConstants {
+	
 	
 	private HashMap<String,Rock> rockMap;
 	
 	private Basalt basalt;
 	private Andesite andesite;
 	private Rhyolite rhyolite;
-	private Gabbro gabbro;
 	private Diorite diorite;
 	private Granite granite;
 
@@ -17,17 +19,15 @@ class BlockConstants {
 	private SandStone sandstone;
 	private Conglomerate conglomerate;
 	private Slate slate;
-	private Gneiss gneiss;
 
 	private Mud mud;
 	private Sand sand;
 	private Gravel gravel;
 	private Talus talus;
 
-	private MilkyQuartzStringer quartzStringer;
 	private MilkyQuartzVein 	quartzVein;
-	private PegmatiteStringer	pegmatiteStringer;
 	private PegmatiteVein		pegmatiteVein;
+	
 
 	BlockConstants(){
 		createBlocks();
@@ -43,7 +43,6 @@ class BlockConstants {
 		rockMap.put("BASALT", 		basalt);
 		rockMap.put("ANDESITE", 	andesite);
 		rockMap.put("RHYOLITE", 	rhyolite);
-		rockMap.put("GABBRO", 		gabbro);
 		rockMap.put("DIORITE", 	diorite);
 		rockMap.put("GRANITE", 	granite);
 
@@ -51,24 +50,22 @@ class BlockConstants {
 		rockMap.put("SANDSTONE", 	sandstone);
 		rockMap.put("CONGLOMERATE",conglomerate);
 		rockMap.put("SLATE", 		slate);
-		rockMap.put("GNEISS", 		gneiss);
 
 		rockMap.put("MUD", 		mud);
 		rockMap.put("SAND", 		sand);
 		rockMap.put("GRAVEL", 		gravel);
 		rockMap.put("TALUS", 		talus);
 
-		rockMap.put("MILKY_QUARTZ_STRINGER", 	quartzStringer);
 		rockMap.put("MILKY_QUARTZ_VEIN", 		quartzVein);
-		rockMap.put("PEGMATITE_STRINGER", 		pegmatiteStringer);
 		rockMap.put("PEGMATITE_VEIN", 			pegmatiteVein);
 	}
 
 	void createBlocks() {
+
 		basalt = new Basalt();
 		andesite = new Andesite();
 		rhyolite = new Rhyolite();
-		gabbro = new Gabbro();
+
 		diorite = new Diorite();
 		granite = new Granite();
 
@@ -81,56 +78,63 @@ class BlockConstants {
 		sandstone = new SandStone();
 		conglomerate = new Conglomerate();
 		slate = new Slate();
-		gneiss = new Gneiss();
-
-		quartzStringer = new MilkyQuartzStringer();
+		
 		quartzVein = new MilkyQuartzVein();
-		pegmatiteStringer = new PegmatiteStringer();
 		pegmatiteVein 	  = new PegmatiteVein();
 	}
 	
 	static abstract class Rock {
+		
+		boolean NULL_TEMP 		= false;
+		boolean NULL_PRESSURE	= false;
+		boolean NULL_HYDRO 	 	= false;
+		boolean NULL_WEATHER 	= false;
+
 		String   NAME;
 		String[] TEXTURES;
 
-		double 	TEMPERATURE_THRESHOLD;
-		String[] TEMPERATURE_CONVERSION;
+		double[] TEMPERATURE_THRESHOLD;
+		String   TEMPERATURE_CONVERSION;
 
-		double 	PRESSURE_THRESHOLD;
-		String[] PRESSURE_CONVERSION;
+		double[] PRESSURE_THRESHOLD;
+		String   PRESSURE_CONVERSION;
 
-		double 	HYDROTHERMAL_THRESHOLD;
-		String[] HYDROTHERMAL_CONVERSION;
+		double[] HYDROTHERMAL_THRESHOLD;
+		String   HYDROTHERMAL_CONVERSION;
 
-		double 	WEATHER_THRESHOLD;
-		String[] WEATHER_CONVERSION ;
+		double[] WEATHER_THRESHOLD;
+		String   WEATHER_CONVERSION ;
 
-		BaseBlock getBaseBlock() {
-			BaseBlock block = new BaseBlock();
-
-			ChangeConditions temperature = new ChangeConditions();
-			ChangeConditions pressure = new ChangeConditions();
-			ChangeConditions hydrothermal = new ChangeConditions();
-			ChangeConditions weather = new ChangeConditions();
-
-			block.setTextures(TEXTURES);
-
-			temperature.setThreshold(TEMPERATURE_THRESHOLD);
-			pressure.setThreshold(PRESSURE_THRESHOLD);
-			hydrothermal.setThreshold(HYDROTHERMAL_THRESHOLD);
-			weather.setThreshold(WEATHER_THRESHOLD);
-
-			temperature.setTarget(TEMPERATURE_CONVERSION);
-			pressure.setTarget(PRESSURE_CONVERSION);
-			hydrothermal.setTarget(HYDROTHERMAL_CONVERSION);
-			weather.setTarget(WEATHER_CONVERSION);
-
-			block.setConditions("Temperature",temperature);
-			block.setConditions("Pressure",pressure);
-			block.setConditions("hydrothermal", hydrothermal);
-			block.setConditions("weather", weather);
-
-			return block;
+		BlockDefault getBaseBlock() {
+			
+			return new BlockDefault.Builder()
+					.setBehaviorMap(new BehaviorMap.Builder()
+							.addBehavior(AlterationType.HEAT, new BehaviorDefault.Builder()
+									.setNull(NULL_TEMP)
+									.setTarget(TEMPERATURE_CONVERSION)
+									.setThresholds(TEMPERATURE_THRESHOLD)
+									.build())
+							.addBehavior(AlterationType.PRESSURE, new BehaviorDefault.Builder()
+									.setNull(NULL_PRESSURE)
+									.setTarget(PRESSURE_CONVERSION)
+									.setThresholds(PRESSURE_THRESHOLD)
+									.build())
+							.addBehavior(AlterationType.HYDROTHERMAL, new BehaviorDefault.Builder()
+									.setNull(NULL_HYDRO)
+									.setTarget(HYDROTHERMAL_CONVERSION)
+									.setThresholds(HYDROTHERMAL_THRESHOLD)
+									.build())
+							.addBehavior(AlterationType.WEATHERING, new BehaviorDefault.Builder()
+									.setNull(NULL_WEATHER)
+									.setTarget(WEATHER_CONVERSION)
+									.setThresholds(WEATHER_THRESHOLD)
+									.build())
+							.build())
+					.setName(NAME)
+					.setTextures(new BlockTexture.Builder()
+							.setBaseTexture(TEXTURES)
+							.build())
+					.build();
 		}
 	}
 
@@ -138,343 +142,272 @@ class BlockConstants {
 
 		Basalt() {
 			NAME 	  				= "BASALT";
-			TEXTURES 				= new String[]{"STONE","OBSIDIAN"};
+			TEXTURES 				= new String[]{"OBSIDIAN"};
 
-			TEMPERATURE_THRESHOLD  	= 800;
-			TEMPERATURE_CONVERSION 	= new String[]{"SLATE"};
+			TEMPERATURE_THRESHOLD  	= new double[]{300,600};
+			TEMPERATURE_CONVERSION 	= "SLATE";
 
-			PRESSURE_THRESHOLD  	= 3;
-			PRESSURE_CONVERSION 	= new String[]{"SLATE"};
+			PRESSURE_THRESHOLD  	= new double[]{4,7};
+			PRESSURE_CONVERSION 	= "SLATE";
 
-			HYDROTHERMAL_THRESHOLD  = 2;
-			HYDROTHERMAL_CONVERSION = new String[]{"MILKY_QUARTZ_STRINGER"};
+			HYDROTHERMAL_THRESHOLD  = new double[]{0.7,1.2};
+			HYDROTHERMAL_CONVERSION = "MILKY_QUARTZ_VEIN";
 
-			WEATHER_THRESHOLD  		= 100;
-			WEATHER_CONVERSION 		= new String[]{"TALUS"};
+			WEATHER_THRESHOLD  		= new double[]{100,300};
+			WEATHER_CONVERSION 		= "TALUS";
 		}
 	}
 	private static final class Andesite extends Rock {
 		Andesite() {
+			
 			NAME 	  				= "ANDESITE";
 			TEXTURES 				= new String[]{"ANDESITE"};
 
-			TEMPERATURE_THRESHOLD  	= 700;
-			TEMPERATURE_CONVERSION 	= new String[]{"SLATE"};
+			TEMPERATURE_THRESHOLD  	= new double[]{300,600};
+			TEMPERATURE_CONVERSION 	= "SLATE";
 
-			PRESSURE_THRESHOLD  	= 2;
-			PRESSURE_CONVERSION 	= new String[]{"SLATE"};
+			PRESSURE_THRESHOLD  	= new double[]{4,7};
+			PRESSURE_CONVERSION 	= "SLATE";
 
-			HYDROTHERMAL_THRESHOLD  = 1.5;
-			HYDROTHERMAL_CONVERSION = new String[]{"MILKY_QUARTZ_STRINGER"};
+			HYDROTHERMAL_THRESHOLD  = new double[]{0.6,1.1};
+			HYDROTHERMAL_CONVERSION = "MILKY_QUARTZ_VEIN";
 
-			WEATHER_THRESHOLD  		= 50;
-			WEATHER_CONVERSION 		= new String[]{"GRAVEL"};
+			WEATHER_THRESHOLD  		= new double[]{100,300};
+			WEATHER_CONVERSION 		= "TALUS";
 		}
 	}
 	private static final class Rhyolite extends Rock {
 		Rhyolite() {
+			
 			NAME 	  				= "RHYOLITE";
 			TEXTURES 				= new String[]{"STONE"};
 
-			TEMPERATURE_THRESHOLD  	= 600;
-			TEMPERATURE_CONVERSION 	= new String[]{"SLATE"};
+			TEMPERATURE_THRESHOLD  	= new double[]{300,600};
+			TEMPERATURE_CONVERSION 	= "SLATE";
 
-			PRESSURE_THRESHOLD  	= 1.5;
-			PRESSURE_CONVERSION 	= new String[]{"SLATE"};
+			PRESSURE_THRESHOLD  	= new double[]{4,7};
+			PRESSURE_CONVERSION 	= "SLATE";
 
-			HYDROTHERMAL_THRESHOLD  = 1.5;
-			HYDROTHERMAL_CONVERSION = new String[]{"MILKY_QUARTZ_STRINGER"};
+			HYDROTHERMAL_THRESHOLD  = new double[]{0.5,1.0};
+			HYDROTHERMAL_CONVERSION = "MILKY_QUARTZ_VEIN";
 
-			WEATHER_THRESHOLD  		= 10;
-			WEATHER_CONVERSION 		= new String[]{"SAND"};
-		}
-	}
-	private static final class Gabbro extends Rock {
-		Gabbro() {
-			NAME 	   = "GABBRO";
-			TEXTURES = new String[]{"STONE","ANDESITE"};
-
-			TEMPERATURE_THRESHOLD  = -1;
-			TEMPERATURE_CONVERSION = new String[]{"NA"};
-
-			PRESSURE_THRESHOLD  = -1;
-			PRESSURE_CONVERSION = new String[]{"NA"};
-
-			HYDROTHERMAL_THRESHOLD  = 4;
-			HYDROTHERMAL_CONVERSION = new String[]{"MILKY_QUARTZ_STRINGER"};
-
-			WEATHER_THRESHOLD  = 50;
-			WEATHER_CONVERSION =new String[]{ "TALUS"};
+			WEATHER_THRESHOLD  		= new double[]{100,300};
+			WEATHER_CONVERSION 		= "TALUS";
 		}
 	}
 	private static final class Diorite extends Rock {
 		Diorite() {
-			NAME 	   = "Diorite";
-			TEXTURES = new String[]{"DIORITE"};
+			
+			NAME 	   	= "DIORITE";
+			TEXTURES 	= new String[]{"DIORITE"};
 
-			TEMPERATURE_THRESHOLD  = -1;
-			TEMPERATURE_CONVERSION = new String[]{"NA"};
+			NULL_TEMP	  = true;
+			NULL_PRESSURE = true;
 
-			PRESSURE_THRESHOLD  = -1;
-			PRESSURE_CONVERSION = new String[]{"NA"};
+			HYDROTHERMAL_THRESHOLD  = new double[]{0.7,1.1};
+			HYDROTHERMAL_CONVERSION = "MILKY_QUARTZ_VEIN";
 
-			HYDROTHERMAL_THRESHOLD  = 2;
-			HYDROTHERMAL_CONVERSION = new String[]{"MILKY_QUARTZ_STRINGER"};
-
-			WEATHER_THRESHOLD  = 150;
-			WEATHER_CONVERSION = new String[]{"TALUS"};
+			WEATHER_THRESHOLD  		= new double[]{100,300};
+			WEATHER_CONVERSION 		= "TALUS";
 		}
 	}
 	private static final class Granite extends Rock {
 		Granite() {
+			
 			NAME 	   = "GRANITE";
 			TEXTURES = new String[]{"GRANITE"};
 
-			TEMPERATURE_THRESHOLD  = -1;
-			TEMPERATURE_CONVERSION = new String[]{"NA"};
+			NULL_TEMP	  = true;
+			NULL_PRESSURE = true;
 
-			PRESSURE_THRESHOLD  = -1;
-			PRESSURE_CONVERSION = new String[]{"NA"};
+			HYDROTHERMAL_THRESHOLD  = new double[]{0.7,1.1};
+			HYDROTHERMAL_CONVERSION = "MILKY_QUARTZ_VEIN";
 
-			HYDROTHERMAL_THRESHOLD  = 2;
-			HYDROTHERMAL_CONVERSION = new String[]{"MILKY_QUARTZ_STRINGER"};
-
-			WEATHER_THRESHOLD  = 300;
-			WEATHER_CONVERSION = new String[]{"TALUS"};
+			WEATHER_THRESHOLD  		= new double[]{300,700};
+			WEATHER_CONVERSION 		= "TALUS";
 		}
 	}
 	private static final class Mudstone extends Rock {
 		Mudstone() {
+		
 			NAME 	   = "MUDSTONE";
 			TEXTURES = new String[]{"HARDENED_CLAY"};
 
-			TEMPERATURE_THRESHOLD  = 100;
-			TEMPERATURE_CONVERSION = new String[]{"SLATE"};
+			TEMPERATURE_THRESHOLD  	= new double[]{200,400};
+			TEMPERATURE_CONVERSION 	= "SLATE";
 
-			PRESSURE_THRESHOLD  = 2;
-			PRESSURE_CONVERSION = new String[]{"SLATE"};
+			PRESSURE_THRESHOLD  	= new double[]{2,4};
+			PRESSURE_CONVERSION 	= "SLATE";
 
-			HYDROTHERMAL_THRESHOLD  = 1;
-			HYDROTHERMAL_CONVERSION = new String[]{"MILKY_QUARTZ_STRINGER"};
+			HYDROTHERMAL_THRESHOLD  = new double[]{0.3,1.0};
+			HYDROTHERMAL_CONVERSION = "MILKY_QUARTZ_VEIN";
 
-			WEATHER_THRESHOLD  = 5;
-			WEATHER_CONVERSION = new String[]{"MUD"};
+			WEATHER_THRESHOLD  		= new double[]{100,300};
+			WEATHER_CONVERSION 		= "TALUS";
 		}
 	}
 	private static final class SandStone extends Rock {
 		SandStone() {
+			
 			NAME 	   = "SANDSTONE";
 			TEXTURES = new String[]{"SANDSTONE","RED_SANDSTONE"};
 
-			TEMPERATURE_THRESHOLD  = 300;
-			TEMPERATURE_CONVERSION = new String[]{"SLATE"};
+			TEMPERATURE_THRESHOLD  	= new double[]{300,600};
+			TEMPERATURE_CONVERSION 	= "SLATE";
 
-			PRESSURE_THRESHOLD  = 2;
-			PRESSURE_CONVERSION = new String[]{"SLATE"};
+			PRESSURE_THRESHOLD  	= new double[]{4,6};
+			PRESSURE_CONVERSION 	= "SLATE";
 
-			HYDROTHERMAL_THRESHOLD  = 1.5;
-			HYDROTHERMAL_CONVERSION = new String[]{"MILKY_QUARTZ_STRINGER"};
+			HYDROTHERMAL_THRESHOLD  = new double[]{0.5,1.0};
+			HYDROTHERMAL_CONVERSION = "MILKY_QUARTZ_VEIN";
 
-			WEATHER_THRESHOLD  = 10;
-			WEATHER_CONVERSION = new String[]{"SAND"};
+			WEATHER_THRESHOLD  		= new double[]{10,30};
+			WEATHER_CONVERSION 		= "SAND";
 		}
 	}
 	private static final class Conglomerate extends Rock {
 		Conglomerate() {
+			
 			NAME 	   = "CONGLOMERATE";
 			TEXTURES = new String[]{"COBBLESTONE"};
 
-			TEMPERATURE_THRESHOLD  = 800;
-			TEMPERATURE_CONVERSION = new String[]{"GNEISS"};
+			TEMPERATURE_THRESHOLD  	= new double[]{600,900};
+			TEMPERATURE_CONVERSION 	= "DIORITE";
 
-			PRESSURE_THRESHOLD  = 4;
-			PRESSURE_CONVERSION = new String[]{"GNEISS"};
+			PRESSURE_THRESHOLD  	= new double[]{4,8};
+			PRESSURE_CONVERSION 	= "DIORITE";
 
-			HYDROTHERMAL_THRESHOLD  = 0.5;
-			HYDROTHERMAL_CONVERSION = new String[]{"MILKY_QUARTZ_STRINGER"};
+			HYDROTHERMAL_THRESHOLD  = new double[]{0.6,1.0};
+			HYDROTHERMAL_CONVERSION = "MILKY_QUARTZ_VEIN";
 
-			WEATHER_THRESHOLD  = 100;
-			WEATHER_CONVERSION = new String[]{"TALUS"};
+			WEATHER_THRESHOLD  		= new double[]{100,300};
+			WEATHER_CONVERSION 		= "TALUS";
 		}
 	}
 	private static final class Slate extends Rock {
 		Slate() {
+			
 			NAME 	   = "SLATE";
 			TEXTURES = new String[]{"STONE"};
 
-			TEMPERATURE_THRESHOLD  = 800;
-			TEMPERATURE_CONVERSION = new String[]{"GNEISS"};
+			TEMPERATURE_THRESHOLD  	= new double[]{700,900};
+			TEMPERATURE_CONVERSION 	= "DIORITE";
 
-			PRESSURE_THRESHOLD  = 8;
-			PRESSURE_CONVERSION = new String[]{"GNEISS"};
+			PRESSURE_THRESHOLD  	= new double[]{7,12};
+			PRESSURE_CONVERSION 	= "DIORITE";
 
-			HYDROTHERMAL_THRESHOLD  = 1;
-			HYDROTHERMAL_CONVERSION = new String[]{"MILKY_QUARTZ_STRINGER"};
+			HYDROTHERMAL_THRESHOLD  = new double[]{0.6,1.0};
+			HYDROTHERMAL_CONVERSION = "MILKY_QUARTZ_VEIN";
 
-			WEATHER_THRESHOLD  = 70;
-			WEATHER_CONVERSION = new String[]{"TALUS"};
-		}
-	}
-	private static final class Gneiss extends Rock {
-		Gneiss() {
-			NAME 	   = "GNEISS";
-			TEXTURES = new String[]{"STONE","DIORITE"};
-
-			TEMPERATURE_THRESHOLD  = -1;
-			TEMPERATURE_CONVERSION = new String[]{"NA"};
-
-			PRESSURE_THRESHOLD  = -1;
-			PRESSURE_CONVERSION = new String[]{"NA"};
-
-			HYDROTHERMAL_THRESHOLD  = 3;
-			HYDROTHERMAL_CONVERSION = new String[]{"MILKY_QUARTZ_STRINGER"};
-
-			WEATHER_THRESHOLD  = 150;
-			WEATHER_CONVERSION = new String[]{"TALUS"};
+			WEATHER_THRESHOLD  		= new double[]{100,300};
+			WEATHER_CONVERSION 		= "TALUS";
 		}
 	}
 	private static final class Mud extends Rock {
 		Mud() {
+			
 			NAME 	 = "MUD";
 			TEXTURES = new String[]{"CLAY"};
 
-			TEMPERATURE_THRESHOLD  = 100;
-			TEMPERATURE_CONVERSION = new String[]{"MUDSTONE"};
+			NULL_WEATHER = true;
+			
+			TEMPERATURE_THRESHOLD  	= new double[]{100,200};
+			TEMPERATURE_CONVERSION 	= "MUDSTONE";
 
-			PRESSURE_THRESHOLD  = 0.5;
-			PRESSURE_CONVERSION = new String[]{"MUDSTONE"};
+			PRESSURE_THRESHOLD  	= new double[]{0.5,1};
+			PRESSURE_CONVERSION 	= "MUDSTONE";
 
-			HYDROTHERMAL_THRESHOLD  = 2;
-			HYDROTHERMAL_CONVERSION = new String[]{"MUDSTONE"};
-
-			WEATHER_THRESHOLD  = -1;
-			WEATHER_CONVERSION = new String[]{"NA"};
+			HYDROTHERMAL_THRESHOLD  = new double[]{0.3,0.7};
+			HYDROTHERMAL_CONVERSION = "MUDSTONE";
 		}
 	}
 	private static final class Sand extends Rock {
 		Sand() {
+			
 			NAME 	   = "SAND";
 			TEXTURES = new String[]{"SAND","RED_SAND"};
+			
+			NULL_WEATHER = true;
 
-			TEMPERATURE_THRESHOLD  = 300;
-			TEMPERATURE_CONVERSION = new String[]{"SANDSTONE"};
+			TEMPERATURE_THRESHOLD  	= new double[]{200,400};
+			TEMPERATURE_CONVERSION 	= "SANDSTONE";
 
-			PRESSURE_THRESHOLD  = 0.5;
-			PRESSURE_CONVERSION = new String[]{"SANDSTONE"};
+			PRESSURE_THRESHOLD  	= new double[]{1,2};
+			PRESSURE_CONVERSION 	= "SANDSTONE";
 
-			HYDROTHERMAL_THRESHOLD  = 0.5;
-			HYDROTHERMAL_CONVERSION = new String[]{"SANDSTONE"};
-
-			WEATHER_THRESHOLD  = 50;
-			WEATHER_CONVERSION = new String[]{"MUD"};
+			HYDROTHERMAL_THRESHOLD  = new double[]{0.3,0.7};
+			HYDROTHERMAL_CONVERSION = "SANDSTONE";
 		}
 	}
 	private static final class Gravel extends Rock {
 		Gravel() {
+			
 			NAME 	   = "GRAVEL";
 			TEXTURES = new String[]{"GRAVEL"};
 
-			TEMPERATURE_THRESHOLD  = 300;
-			TEMPERATURE_CONVERSION = new String[]{"CONGLOMERATE"};
+			TEMPERATURE_THRESHOLD  	= new double[]{200,300};
+			TEMPERATURE_CONVERSION 	= "CONGLOMERATE";
 
-			PRESSURE_THRESHOLD  = 1;
-			PRESSURE_CONVERSION = new String[]{"CONGLOMERATE"};
+			PRESSURE_THRESHOLD  	= new double[]{1,3};
+			PRESSURE_CONVERSION 	= "SLATE";
 
-			HYDROTHERMAL_THRESHOLD  = 1;
-			HYDROTHERMAL_CONVERSION = new String[]{"CONGLOMERATE"};
+			HYDROTHERMAL_THRESHOLD  = new double[]{0.3,0.7};
+			HYDROTHERMAL_CONVERSION = "CONGLOMERATE";
 
-			WEATHER_THRESHOLD  = 10;
-			WEATHER_CONVERSION = new String[]{"SAND"};
+			WEATHER_THRESHOLD  = new double[]{50,100};
+			WEATHER_CONVERSION = "SAND";
 		}
 	}
 	private static final class Talus extends Rock {
 		Talus() {
+			
 			NAME 	   = "TALUS";
-			TEXTURES = new String[]{"COBBLESTONE","GREEN_COBBLESTONE"};
+			TEXTURES = new String[]{ "COBBLESTONE"};
 
-			TEMPERATURE_THRESHOLD  = 400;
-			TEMPERATURE_CONVERSION = new String[]{"SLATE"};
+			TEMPERATURE_THRESHOLD  	= new double[]{300,600};
+			TEMPERATURE_CONVERSION 	= "CONGLOMERATE";
 
-			PRESSURE_THRESHOLD  = 2;
-			PRESSURE_CONVERSION = new String[]{"SLATE"};
+			PRESSURE_THRESHOLD  	= new double[]{3,6};
+			PRESSURE_CONVERSION 	= "CONGLOMERATE";
 
-			HYDROTHERMAL_THRESHOLD  = 2;
-			HYDROTHERMAL_CONVERSION = new String[]{"MILKY_QUARTZ_STRINGER"};
+			HYDROTHERMAL_THRESHOLD  = new double[]{0.6,1.1};
+			HYDROTHERMAL_CONVERSION = "CONGLOMERATE";
 
-			WEATHER_THRESHOLD  = 5;
-			WEATHER_CONVERSION = new String[]{"GRAVEL"};
-		}
-	}
-	private static final class MilkyQuartzStringer extends Rock {
-		MilkyQuartzStringer() {
-			NAME 	   = "MILKY_QUARTZ_STRINGER";
-			TEXTURES = new String[]{"STONE","COBBLESTONE","DIORITE"};
-
-			TEMPERATURE_THRESHOLD  = 700;
-			TEMPERATURE_CONVERSION = new String[]{"PEGMATITE_STRINGER"};
-
-			PRESSURE_THRESHOLD  = 5;
-			PRESSURE_CONVERSION = new String[]{"PEGMATITE_STRINGER"};
-
-			HYDROTHERMAL_THRESHOLD  = 4;
-			HYDROTHERMAL_CONVERSION = new String[]{"MILKY_QUARTZ_VEIN"};
-
-			WEATHER_THRESHOLD  = 50;
-			WEATHER_CONVERSION = new String[]{"GRAVEL"};
+			WEATHER_THRESHOLD  = new double[]{50,100};
+			WEATHER_CONVERSION = "GRAVEL";
 		}
 	}
 	private static final class MilkyQuartzVein extends Rock {
 		MilkyQuartzVein() {
+			
 			NAME 	   = "MILKY_QUARTZ_VEIN";
-			TEXTURES = new String[]{"DIORITE"};
+			TEXTURES		 = new String[]{"DIORITE"};
+			
+			NULL_HYDRO = true;
 
-			TEMPERATURE_THRESHOLD  = 700;
-			TEMPERATURE_CONVERSION = new String[]{"PEGMATITE_VEIN"};
+			TEMPERATURE_THRESHOLD  = new double[]{600,800};
+			TEMPERATURE_CONVERSION = "PEGMATITE_VEIN";
 
-			PRESSURE_THRESHOLD  = 5;
-			PRESSURE_CONVERSION = new String[]{"PEGMATITE_VEIN"};
+			PRESSURE_THRESHOLD  = new double[]{6,8};
+			PRESSURE_CONVERSION = "PEGMATITE_VEIN";
 
-			HYDROTHERMAL_THRESHOLD  = -1;
-			HYDROTHERMAL_CONVERSION = new String[]{"NA"};
-
-			WEATHER_THRESHOLD  = 100;
-			WEATHER_CONVERSION = new String[]{"TALUS"};
-		}
-	}
-	private static final class PegmatiteStringer extends Rock {
-		PegmatiteStringer() {
-			NAME 	   = "PEGMATITE_STRINGER";
-			TEXTURES = new String[]{"STONE","GRANITE"};
-
-			TEMPERATURE_THRESHOLD  = -1;
-			TEMPERATURE_CONVERSION = new String[]{"NA"};
-
-			PRESSURE_THRESHOLD  = -1;
-			PRESSURE_CONVERSION = new String[]{"NA"};
-
-			HYDROTHERMAL_THRESHOLD  = 5;
-			HYDROTHERMAL_CONVERSION = new String[]{"PEGMATITE_VEIN"};
-
-			WEATHER_THRESHOLD  = 60;
-			WEATHER_CONVERSION = new String[]{"GRAVEL"};
+			WEATHER_THRESHOLD  = new double[]{100,300};
+			WEATHER_CONVERSION = "TALUS";
 		}
 	}
 	private static final class PegmatiteVein extends Rock {
 		PegmatiteVein() {
+			
 			NAME 	   = "PEGMATITE_VEIN";
-			TEXTURES = new String[]{"GRANITE"};
+			TEXTURES 		= new String[]{"GRANITE"};
 
-			TEMPERATURE_THRESHOLD  = -1;
-			TEMPERATURE_CONVERSION = new String[]{"NA"};
+			NULL_TEMP 		= true;
+			NULL_PRESSURE 	= true;
+			NULL_HYDRO 		= true;
 
-			PRESSURE_THRESHOLD  = -1;
-			PRESSURE_CONVERSION = new String[]{"NA"};
-
-			HYDROTHERMAL_THRESHOLD  = -1;
-			HYDROTHERMAL_CONVERSION = new String[]{"NA"};
-
-			WEATHER_THRESHOLD  = 100;
-			WEATHER_CONVERSION = new String[]{"TALUS"};
+			WEATHER_THRESHOLD  = new double[]{100,300};
+			WEATHER_CONVERSION = "TALUS";
 		}
 	}
+	
 }

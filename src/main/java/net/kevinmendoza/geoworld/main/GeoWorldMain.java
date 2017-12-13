@@ -20,6 +20,7 @@ package net.kevinmendoza.geoworld.main;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -48,6 +49,7 @@ import com.google.inject.Inject;
 import net.kevinmendoza.geoworld.configuration.GeoWorldConfiguration;
 import net.kevinmendoza.geoworld.spongehooks.generators.GeneratorModifierAccess;
 import net.kevinmendoza.geoworldlibrary.utilities.Debug;
+import net.kevinmendoza.geoworldlibrary.utilities.GeoWorldPlugin;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
@@ -62,12 +64,13 @@ authors = {"El_Minadero"},
 description = "A Geologic Minecraft Mod")
 public class GeoWorldMain {
 
+	private static final boolean DEBUG = true;
 	public  static final String ID = "geoworld";
 	public  static final String NAME = "GeoWorld";
 	public  static final String VERSION = "1.0.2a";
-	public  static final String[] GEOWORLD_IDS = {"igneouspack"};
-	private static WorldArchetype GEOWORLD;
+	public  static final String[] GEOWORLD_IDS = {"igneouspack","sedimentarysequences"};
 	public  static GeoWorldMain PluginMain;
+	private static WorldArchetype GEOWORLD;
 	private static WorldGeneratorModifier modifier;
 	
 	@Inject 
@@ -79,14 +82,19 @@ public class GeoWorldMain {
 	@Inject 
 	private Logger logger;
 	private GeoWorldConfiguration defaults;
-	private List<PluginContainer> validPluginContainers;
+	private HashMap<String,GeoWorldPlugin> geoWorldPlugins;
 	
 	public GeoWorldMain() {
 		PluginMain = this;
+		geoWorldPlugins = new HashMap<>();
 	}
 	@Listener
 	public void onPlayerJoin(ClientConnectionEvent.Join event)  {
 		Player player = event.getTargetEntity();
+		if(DEBUG) {
+			World geoWorld = Sponge.getGame().getServer().getWorld("geoworld").get();
+			player.setLocation(geoWorld.getLocation(0,1,0));
+		}
 		if(player.get(JoinData.class).isPresent()) {
 			World geoWorld = Sponge.getGame().getServer().getWorld("geoworld").get();
 			player.setLocation(geoWorld.getSpawnLocation());
@@ -97,12 +105,16 @@ public class GeoWorldMain {
 	@Listener
 	public void onGamePreInitialization(GamePreInitializationEvent event) throws IOException, ObjectMappingException {
 		createConfigs();
+		logger.info("registering modifier");
+		modifier = GeneratorModifierAccess.GetWorldGeneratorModifier();
+		Sponge.getRegistry().register(WorldGeneratorModifier.class , modifier);
 	}
 	
 	@Listener
 	public void onGameStartingServerEvent(GameStartingServerEvent event) throws IOException, ObjectMappingException {
-		createConfigs();
+		logger.info("creating instance");
 		try {
+			logger.info("building world");
 			GEOWORLD = WorldArchetype.builder()
 	        		.from(WorldArchetypes.OVERWORLD)
 	        		.generatorModifiers(modifier)
@@ -110,24 +122,33 @@ public class GeoWorldMain {
 			final WorldProperties properties = Sponge.getServer().createWorldProperties("geoworld",GEOWORLD);
 			Sponge.getServer().loadWorld(properties);
 		} catch (IOException ex) {
+			logger.info("couldn't build world. " + ex.getLocalizedMessage());
 		}
 	}
 	
 	@Listener
 	public void onGameInitialization(GameInitializationEvent event) {
-		validPluginContainers = new ArrayList<>();
-		modifier = GeneratorModifierAccess.GetWorldGeneratorModifier();
-		Sponge.getRegistry().register(WorldGeneratorModifier.class , modifier);
 		for(String ids: GEOWORLD_IDS) {
 			Optional<PluginContainer> pluginOptional = Sponge.getPluginManager().getPlugin(ids);
 			if(pluginOptional.isPresent()) {
 				PluginContainer container = pluginOptional.get();
-				validPluginContainers.add(container);
+				Optional<?> pluginInstance = container.getInstance();
+				Object o = pluginInstance.get();
+				if(GeoWorldPlugin.class.isAssignableFrom(o.getClass())) {
+					GeoWorldPlugin testPlugin = (GeoWorldPlugin)o;
+					logger.info("GeoWorld Plugin Identified: " + ids);
+					geoWorldPlugins.put(testPlugin.GetPluginID(), testPlugin);
+				}
 			}
 		}
-		
-		if(!validPluginContainers.isEmpty()) {
-		}
+	}
+	
+	public boolean pluginExists(String key) {
+		return geoWorldPlugins.containsKey(key);
+	}
+	
+	public GeoWorldPlugin getPlugin(String key) {
+		return geoWorldPlugins.get(key);
 	}
 	
 /*	@Listener
@@ -144,16 +165,11 @@ public class GeoWorldMain {
 	public Logger getLog() {
 		return logger;
 	}
-
-	public List<PluginContainer> getValidPluginContainers() {
-		return validPluginContainers;
-	}
 	
+	public String GetPluginID() {
+		return ID;
+	}
 	public PluginContainer GetPluginContainer() {
-		if(container==null)
-			logger.info("isNull");
-		else
-			logger.debug("isNotNull");
 		return container;
 	}
 

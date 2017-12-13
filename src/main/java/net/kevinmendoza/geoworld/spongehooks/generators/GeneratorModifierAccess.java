@@ -9,6 +9,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 import net.kevinmendoza.geoworld.configuration.ConfigBind;
+import net.kevinmendoza.geoworld.main.GeoWorldMain;
 import net.kevinmendoza.geoworldlibrary.utilities.IDebug;
 
 public final class GeneratorModifierAccess {
@@ -25,10 +26,10 @@ public final class GeneratorModifierAccess {
 	}
 	
 	public static WorldGeneratorModifier GetWorldGeneratorModifier() {
+		GeoWorldMain.PluginMain.getLog().info("creating gen instance");
 		if(overWorldModifier==null) {
 			overWorldModifier = GetInjector().getInstance(OverWorldModifier.class);
 		}
 		return overWorldModifier;
 	}
-
 }

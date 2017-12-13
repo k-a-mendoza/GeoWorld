@@ -17,8 +17,13 @@ class GlobalDefaults implements IGlobalDefaults {
 	GlobalDefaults(){
 		pluginIDs = new ArrayList<>();
 		pluginIDs.add("igneouspack");
+		pluginIDs.add("sedimentarysequences");
 		
 	}
-	public boolean isValidPluginID(String string) { return pluginIDs.contains(string); }
+	public List<String> getPluginIDs() {
+		List<String> ids = new ArrayList<>();
+		ids.addAll(pluginIDs);
+		return ids;
+	}
 
 }

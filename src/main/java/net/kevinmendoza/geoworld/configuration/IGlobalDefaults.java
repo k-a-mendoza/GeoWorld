@@ -1,7 +1,9 @@
 package net.kevinmendoza.geoworld.configuration;
 
-interface IGlobalDefaults {
+import java.util.List;
+
+public interface IGlobalDefaults {
 	
-	public boolean isValidPluginID(String string);
+	public List<String> getPluginIDs();
 	
 }

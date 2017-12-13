@@ -16,8 +16,7 @@ class GeneratorDefaults implements IGeneratorDefaults {
 	}
 	@Override
 	public boolean removeVanillaOres() {
-		// TODO Auto-generated method stub
-		return false;
+		return removeDefaultOres;
 	}
 
 }

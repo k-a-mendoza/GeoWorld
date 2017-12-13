@@ -16,11 +16,13 @@
 */
 package net.kevinmendoza.geoworld.spongehooks.generators;
 
+import java.util.HashMap;
 import java.util.List;
 
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.world.gen.GenerationPopulator;
+import org.spongepowered.api.world.gen.Populator;
 import org.spongepowered.api.world.gen.WorldGenerator;
 import org.spongepowered.api.world.gen.WorldGeneratorModifier;
 import org.spongepowered.api.world.storage.WorldProperties;
@@ -28,9 +30,11 @@ import org.spongepowered.api.world.storage.WorldProperties;
 import com.flowpowered.math.vector.Vector2i;
 
 import net.kevinmendoza.geoworld.main.GeoWorldMain;
-import net.kevinmendoza.geoworld.spongehooks.populators.DefaultPopulator;
+import net.kevinmendoza.geoworld.spongehooks.populators.GeoWorldPopulator;
+import net.kevinmendoza.geoworld.spongehooks.populators.GeoWorldPopulatorFactory;
 import net.kevinmendoza.geoworldlibrary.geology.recursivegeology.IGeology;
 import net.kevinmendoza.geoworldlibrary.utilities.Debug;
+import net.kevinmendoza.geoworldlibrary.utilities.GeoWorldPlugin;
 
 class OverWorldModifier extends GeoWorldGeneratorModifier implements WorldGeneratorModifier {
 
@@ -46,10 +50,24 @@ class OverWorldModifier extends GeoWorldGeneratorModifier implements WorldGenera
 	@Override
 	public void modifyWorldGenerator(WorldProperties world,
 			DataContainer settings, WorldGenerator worldGenerator) {
+		GeoWorldMain.PluginMain.getLog().info("modififying world generator");
 		removeDefaultOres(worldGenerator);
+		GeoWorldMain.PluginMain.getLog().info("modifying base populator");
 		GenerationPopulator defaultBasePopulator = worldGenerator.getBaseGenerationPopulator();
-		GeoWorldMain.PluginMain.getLog().debug("setting base populator");
-		worldGenerator.setBaseGenerationPopulator(new DefaultPopulator(defaultBasePopulator));
+		
+		HashMap<String,GeoWorldPlugin> plugins = getPlugins();
+		GeoWorldMain.PluginMain.getLog().info("got plugins");
+		GeoWorldPopulator pop = GeoWorldPopulatorFactory.getPopulator(defaultBasePopulator, plugins, world.getSeed());
+		worldGenerator.setBaseGenerationPopulator(pop);
+		debugLoop(worldGenerator);
+	}
+	private void debugLoop(WorldGenerator worldGenerator) {
+		if(CLEAR_GENERATION_POPULATORS) {
+			worldGenerator.getGenerationPopulators().clear();
+		}
+		if(CLEAR_POPULATORS) {
+			worldGenerator.getPopulators().clear();
+		}
 	}
 	
 }
