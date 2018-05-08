@@ -12,18 +12,25 @@ import ninja.leaping.configurate.objectmapping.serialize.ConfigSerializable;
 class GlobalDefaults implements IGlobalDefaults {
 	static final TypeToken<GlobalDefaults> type = TypeToken.of(GlobalDefaults.class);
 	@Setting
-	private List<String> pluginIDs;
+	private List<String> generatorIDs;
+	@Setting
+	private List<String> transformerIDs;
 	
 	GlobalDefaults(){
-		pluginIDs = new ArrayList<>();
-		pluginIDs.add("igneouspack");
-		pluginIDs.add("sedimentarysequences");
-		
+		generatorIDs = new ArrayList<>();
+		transformerIDs = new ArrayList<>();
+		generatorIDs.add("igneouspack");
+		generatorIDs.add("sedimentarysequences");
+		transformerIDs.add("geology2minecraftclassic");
 	}
-	public List<String> getPluginIDs() {
-		List<String> ids = new ArrayList<>();
-		ids.addAll(pluginIDs);
-		return ids;
+
+	public List<String> getGeneratorIDs() {
+		return generatorIDs;
 	}
+
+	public List<String> getTransformerIDs() {
+		return transformerIDs;
+	}
+	
 
 }

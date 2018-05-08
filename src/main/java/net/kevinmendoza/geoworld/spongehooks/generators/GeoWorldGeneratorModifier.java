@@ -28,72 +28,79 @@ import com.google.inject.Inject;
 import net.kevinmendoza.geoworld.configuration.IGeneratorDefaults;
 import net.kevinmendoza.geoworld.configuration.IGlobalDefaults;
 import net.kevinmendoza.geoworld.main.GeoWorldMain;
+import net.kevinmendoza.geoworld.main.IPluginConnections;
 import net.kevinmendoza.geoworldlibrary.geology.recursivegeology.IGeology;
 import net.kevinmendoza.geoworldlibrary.utilities.Debug;
-import net.kevinmendoza.geoworldlibrary.utilities.GeoWorldPlugin;
+import net.kevinmendoza.geoworldlibrary.utilities.IGeoWorldPlugin;
+import net.kevinmendoza.geoworldlibrary.utilities.IGeoWorldRockTransformer;
 
 public class GeoWorldGeneratorModifier  {
-	protected final boolean CLEAR_POPULATORS = true;
-	private final boolean CLEAR_LAYERS = true;
-	protected final boolean CLEAR_GENERATION_POPULATORS = false;
+
 	@Inject
-	IGeneratorDefaults generatorDefaults;
+	protected IGeneratorDefaults generatorDefaults;
 	@Inject
-	IGlobalDefaults globalDefaults;
+	protected IGlobalDefaults 	 globalDefaults;
+	@Inject
+	protected IPluginConnections pluginConnections;
 
 	public GeoWorldGeneratorModifier() {
 	}
-	
+
 	protected void removeDefaultOres(WorldGenerator generator) {
-		if(generatorDefaults.removeVanillaOres()) {
-			debugLoop2(generator);
-			List<Populator> populators = generator.getPopulators();
-			populators.removeIf(p -> p.getType() == PopulatorTypes.ORE);
-			BiomeGenerationSettings settings;
-			for (BiomeType type : Sponge.getRegistry().getAllOf(BiomeType.class)) {
-				settings = generator.getBiomeSettings(type);
-				debugLoop(settings);
-				settings.getPopulators().removeIf(p -> p.getType() == PopulatorTypes.ORE);
-			}
+		applyGeneratorSettings(generator);
+		List<Populator> populators = generator.getPopulators();
+		populators.removeIf(p -> p.getType() == PopulatorTypes.ORE);
+		BiomeGenerationSettings settings;
+		for (BiomeType type : Sponge.getRegistry().getAllOf(BiomeType.class)) {
+			settings = generator.getBiomeSettings(type);
+			applyBiomeSettings(type,settings);
 		}
 	}
-	
-	private void debugLoop2(WorldGenerator worldGenerator) {
-		if(CLEAR_POPULATORS) {
+
+	private void applyGeneratorSettings(WorldGenerator worldGenerator) {
+		if(generatorDefaults.clearPopulators()) {
 			worldGenerator.getPopulators().clear();
 		}
-		if(CLEAR_LAYERS) {
+		if(generatorDefaults.clearGenerationOres()) {
+			worldGenerator.getPopulators().removeIf(p -> p.getType() == PopulatorTypes.ORE);
+		}
+		if(generatorDefaults.clearGenerationPopulators()) {
 			worldGenerator.getGenerationPopulators().clear();
 		}
 	}
 	
-	private void debugLoop(BiomeGenerationSettings settings) {
-		if(CLEAR_POPULATORS) {
+	private void applyBiomeSettings(BiomeType type,BiomeGenerationSettings settings) {
+		if(generatorDefaults.clearBiomePopulators(type)) {
 			settings.getPopulators().clear();
 		}
-		if(CLEAR_GENERATION_POPULATORS) {
+		if(generatorDefaults.clearBiomeGeneratorPopulators(type)) {
 			settings.getGenerationPopulators().clear();
 		}
-		if(CLEAR_LAYERS) {
+		if(generatorDefaults.clearBiomeCoverLayers(type)) {
 			settings.getGroundCoverLayers().clear();
+		}
+		if(generatorDefaults.clearBiomeOres(type)) {
+			settings.getPopulators().removeIf(p -> p.getType() == PopulatorTypes.ORE);
 		}
 	}
 	
-	protected HashMap<String, GeoWorldPlugin> getPlugins(){
-		List<String> ids = globalDefaults.getPluginIDs();
-		HashMap<String,GeoWorldPlugin> plugins = new HashMap<>();
-		for(String id : ids) {
-			if(!GeoWorldMain.PluginMain.pluginExists(id)) {
-				GeoWorldMain.PluginMain.getLog().info("Could not find plugin " 
-			    + id + " . GeoWorld will continue with existing plugins");
-			}
-			else {
-				GeoWorldMain.PluginMain.getLog().info("Adding " 
-					    + id + " to GeoWorld Simulation Loop");
-				plugins.put(id,GeoWorldMain.PluginMain.getPlugin(id));
+	protected List<IGeoWorldPlugin> getGenerationPlugins() {
+		List<IGeoWorldPlugin> pluginGenerators = new ArrayList<>();
+		List<String> generators = globalDefaults.getGeneratorIDs();
+		List<String> order = generatorDefaults.getIDOrder();
+		for(String generatorOrder : order) {
+			for(String generator : generators) {
+				if(generatorOrder.equalsIgnoreCase(generator)) {
+					pluginGenerators.add(pluginConnections.get(generatorOrder));
+					break;
+				}
 			}
 		}
-		return plugins;
+		return pluginGenerators;
+	}
+	
+	protected IGeoWorldRockTransformer getTransformer() {
+		return pluginConnections.getRockTransformer();
 	}
 
 }

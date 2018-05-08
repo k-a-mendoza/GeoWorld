@@ -4,6 +4,8 @@ import java.util.List;
 
 public interface IGlobalDefaults {
 	
-	public List<String> getPluginIDs();
+	public List<String> getGeneratorIDs();
+	
+	public List<String> getTransformerIDs();
 	
 }

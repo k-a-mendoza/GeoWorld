@@ -19,7 +19,6 @@ package net.kevinmendoza.geoworld.main;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -30,7 +29,6 @@ import org.spongepowered.api.config.DefaultConfig;
 import org.spongepowered.api.data.manipulator.mutable.entity.JoinData;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartingServerEvent;
@@ -41,15 +39,15 @@ import org.spongepowered.api.world.World;
 import org.spongepowered.api.world.WorldArchetype;
 import org.spongepowered.api.world.WorldArchetypes;
 import org.spongepowered.api.world.gen.WorldGeneratorModifier;
-import org.spongepowered.api.world.gen.WorldGeneratorModifiers;
 import org.spongepowered.api.world.storage.WorldProperties;
 
+import com.google.inject.Guice;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 
+import net.kevinmendoza.geoworld.configuration.ConfigBind;
 import net.kevinmendoza.geoworld.configuration.GeoWorldConfiguration;
 import net.kevinmendoza.geoworld.spongehooks.generators.GeneratorModifierAccess;
-import net.kevinmendoza.geoworldlibrary.utilities.Debug;
-import net.kevinmendoza.geoworldlibrary.utilities.GeoWorldPlugin;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
@@ -68,7 +66,6 @@ public class GeoWorldMain {
 	public  static final String ID = "geoworld";
 	public  static final String NAME = "GeoWorld";
 	public  static final String VERSION = "1.0.2a";
-	public  static final String[] GEOWORLD_IDS = {"igneouspack","sedimentarysequences"};
 	public  static GeoWorldMain PluginMain;
 	private static WorldArchetype GEOWORLD;
 	private static WorldGeneratorModifier modifier;
@@ -82,11 +79,11 @@ public class GeoWorldMain {
 	@Inject 
 	private Logger logger;
 	private GeoWorldConfiguration defaults;
-	private HashMap<String,GeoWorldPlugin> geoWorldPlugins;
+	private GeoWorldPluginConnections pluginConnections;
 	
 	public GeoWorldMain() {
 		PluginMain = this;
-		geoWorldPlugins = new HashMap<>();
+		pluginConnections=null;
 	}
 	@Listener
 	public void onPlayerJoin(ClientConnectionEvent.Join event)  {
@@ -128,28 +125,17 @@ public class GeoWorldMain {
 	
 	@Listener
 	public void onGameInitialization(GameInitializationEvent event) {
-		for(String ids: GEOWORLD_IDS) {
-			Optional<PluginContainer> pluginOptional = Sponge.getPluginManager().getPlugin(ids);
-			if(pluginOptional.isPresent()) {
-				PluginContainer container = pluginOptional.get();
-				Optional<?> pluginInstance = container.getInstance();
-				Object o = pluginInstance.get();
-				if(GeoWorldPlugin.class.isAssignableFrom(o.getClass())) {
-					GeoWorldPlugin testPlugin = (GeoWorldPlugin)o;
-					logger.info("GeoWorld Plugin Identified: " + ids);
-					geoWorldPlugins.put(testPlugin.GetPluginID(), testPlugin);
-				}
-			}
+		if(pluginConnections==null) {
+			Injector injector = Guice.createInjector(new ConfigBind());
+			pluginConnections = injector.getInstance(GeoWorldPluginConnections.class);
+		}
+		List<String> connectedPlugins=pluginConnections.connectGeoWorldPluginSuite();
+		logger.info("Connected the Following Plugins");
+		for(String plugin : connectedPlugins) {
+			logger.info("         : " + plugin);
 		}
 	}
-	
-	public boolean pluginExists(String key) {
-		return geoWorldPlugins.containsKey(key);
-	}
-	
-	public GeoWorldPlugin getPlugin(String key) {
-		return geoWorldPlugins.get(key);
-	}
+
 	
 /*	@Listener
 	public void onGameReload(GameReloadEvent event) throws IOException, ObjectMappingException {
