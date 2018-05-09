@@ -47,7 +47,7 @@ import com.google.inject.Injector;
 
 import net.kevinmendoza.geoworld.configuration.ConfigBind;
 import net.kevinmendoza.geoworld.configuration.GeoWorldConfiguration;
-import net.kevinmendoza.geoworld.spongehooks.generators.GeneratorModifierAccess;
+import net.kevinmendoza.geoworld.spongehooks.generators.OverWorldModifier;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
@@ -66,7 +66,7 @@ public class GeoWorldMain {
 	public  static final String ID = "geoworld";
 	public  static final String NAME = "GeoWorld";
 	public  static final String VERSION = "1.0.2a";
-	public  static GeoWorldMain PluginMain;
+	private  static GeoWorldMain pluginMain;
 	private static WorldArchetype GEOWORLD;
 	private static WorldGeneratorModifier modifier;
 	
@@ -82,7 +82,7 @@ public class GeoWorldMain {
 	private GeoWorldPluginConnections pluginConnections;
 	
 	public GeoWorldMain() {
-		PluginMain = this;
+		pluginMain = this;
 		pluginConnections=null;
 	}
 	@Listener
@@ -102,9 +102,24 @@ public class GeoWorldMain {
 	@Listener
 	public void onGamePreInitialization(GamePreInitializationEvent event) throws IOException, ObjectMappingException {
 		createConfigs();
+		Injector injector = Guice.createInjector(new ConfigBind());
+		connectPlugins(injector);
+		registerWorldModifier(injector);
+	}
+	
+	private void registerWorldModifier(Injector injector) {
 		logger.info("registering modifier");
-		modifier = GeneratorModifierAccess.GetWorldGeneratorModifier();
+		modifier = injector.getInstance(OverWorldModifier.class);
 		Sponge.getRegistry().register(WorldGeneratorModifier.class , modifier);
+	}
+	
+	private void connectPlugins(Injector injector) {
+		pluginConnections = injector.getInstance(GeoWorldPluginConnections.class);
+		List<String> connectedPlugins=pluginConnections.connectGeoWorldPluginSuite();
+		logger.info("Connected the Following Plugins");
+		for(String plugin : connectedPlugins) {
+			logger.info("         : " + plugin);
+		}
 	}
 	
 	@Listener
@@ -120,19 +135,6 @@ public class GeoWorldMain {
 			Sponge.getServer().loadWorld(properties);
 		} catch (IOException ex) {
 			logger.info("couldn't build world. " + ex.getLocalizedMessage());
-		}
-	}
-	
-	@Listener
-	public void onGameInitialization(GameInitializationEvent event) {
-		if(pluginConnections==null) {
-			Injector injector = Guice.createInjector(new ConfigBind());
-			pluginConnections = injector.getInstance(GeoWorldPluginConnections.class);
-		}
-		List<String> connectedPlugins=pluginConnections.connectGeoWorldPluginSuite();
-		logger.info("Connected the Following Plugins");
-		for(String plugin : connectedPlugins) {
-			logger.info("         : " + plugin);
 		}
 	}
 
@@ -155,8 +157,8 @@ public class GeoWorldMain {
 	public String GetPluginID() {
 		return ID;
 	}
-	public PluginContainer GetPluginContainer() {
-		return container;
+	public static PluginContainer GetPluginContainer() {
+		return pluginMain.container;
 	}
 
 }

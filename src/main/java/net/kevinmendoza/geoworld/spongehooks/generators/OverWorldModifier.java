@@ -16,8 +16,8 @@
 */
 package net.kevinmendoza.geoworld.spongehooks.generators;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.world.gen.GenerationPopulator;
@@ -25,7 +25,12 @@ import org.spongepowered.api.world.gen.WorldGenerator;
 import org.spongepowered.api.world.gen.WorldGeneratorModifier;
 import org.spongepowered.api.world.storage.WorldProperties;
 
-class OverWorldModifier extends GeoWorldGeneratorModifier implements WorldGeneratorModifier {
+import net.kevinmendoza.geoworldlibrary.geology.recursivegeology.IGeology;
+import net.kevinmendoza.geoworldlibrary.utilities.IBlockStateCreator;
+import net.kevinmendoza.geoworldlibrary.utilities.IGeoWorldPlugin;
+import net.kevinmendoza.geoworldlibrary.utilities.IGeoWorldRockTransformer;
+
+public class OverWorldModifier extends GeoWorldGeneratorModifier implements WorldGeneratorModifier {
 
 	@Override
 	public String getId()   { return "geoworld"; }
@@ -39,37 +44,53 @@ class OverWorldModifier extends GeoWorldGeneratorModifier implements WorldGenera
 	@Override
 	public void modifyWorldGenerator(WorldProperties world,
 			DataContainer settings, WorldGenerator worldGenerator) {
-		/*
-		 * 
-		 * 
-		 * 
-		 */
-		//GeoWorldMain.PluginMain.getLog().info("modififying world generator");
-		//removeDefaultOres(worldGenerator);
-		//GeoWorldMain.PluginMain.getLog().info("modifying base populator");
-		GenerationPopulator defaultBasePopulator = worldGenerator.getBaseGenerationPopulator();
-		try {
-			Method[] methods = defaultBasePopulator.getClass().getMethods();
-			Field[] fields   = defaultBasePopulator.getClass().getFields();
-			for(Method method : methods){
-			    System.out.println("method = " + method.getName());
-			}
-			for(Field field : fields){
-			    System.out.println("fields = " + field.getName());
-			}
-         }
-         catch (Throwable e) {
-            System.err.println(e);
-         }
-		//List<IGeoWorldPlugin> plugins		 = getGenerationPlugins();
-		//IGeoWorldRockTransformer transformer = getTransformer();
-		//GeoWorldMain.PluginMain.getLog().info("got plugins");
-		/**GeoWorldPopulator pop = GeoWorldPopulatorFactory.getPopulator(
-				defaultBasePopulator, plugins, transformer, world.getSeed());
-		worldGenerator.setBaseGenerationPopulator(pop);
-		**/
+		removeVanillaBehaviors(worldGenerator);
+		GenerationPopulator geoWorldBasePopulator = createGeoWorldPopulator(world,
+										settings,worldGenerator);
 		
+		worldGenerator.setBaseGenerationPopulator(geoWorldBasePopulator);
 	}
 	
+	private GenerationPopulator createGeoWorldPopulator(WorldProperties world, 
+			DataContainer settings, WorldGenerator worldGenerator) {
+		pluginConnections.connectPlugins();
+		GenerationPopulator 	 defaultBasePopulator 
+									= worldGenerator.getBaseGenerationPopulator();
+		List<IGeoWorldPlugin> 	 plugins		 
+									= getGenerationPlugins();
+		IGeoWorldRockTransformer transformer 
+									= getTransformer();
+		
+		IBlockStateCreator creator 	= getBlockCreator(world,transformer);
+		List<IGeology>  geologies  	= getGeologyList(world,plugins);
+		IRockVolumeExtractor map 		   	= getVolumeExtractor(settings,defaultBasePopulator);
+		
+		return new GeoWorldPopulator.Builder()
+				.setBlockCreator(creator)
+				.setGeologyList(geologies)
+				.setVolumeExtractor(map).build();
+
+	}
+	
+	private IRockVolumeExtractor getVolumeExtractor(DataContainer settings, GenerationPopulator defaultBasePopulator) {
+		return new VolumeExtractor.Builder()
+				.setWorldGenerator(defaultBasePopulator)
+				.build();
+	}
+	
+	private List<IGeology> getGeologyList(WorldProperties world,List<IGeoWorldPlugin> plugins) {
+		List<IGeology> geologyList = new ArrayList<>();
+		long seed = world.getSeed();
+		for(IGeoWorldPlugin plugin : plugins) {
+			geologyList.add(plugin.getGeology(seed, true));
+		}
+		return geologyList;
+	}
+	
+	private IBlockStateCreator getBlockCreator(WorldProperties world,
+			IGeoWorldRockTransformer transformer) {
+		long seed = world.getSeed();
+		return transformer.getBlockCreator(seed, false);
+	}
 	
 }

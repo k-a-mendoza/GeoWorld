@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.plugin.PluginContainer;
 
@@ -32,6 +33,15 @@ public class GeoWorldPluginConnections implements IPluginConnections {
 		connected.addAll(connectGenerators());
 		connected.addAll(connectTransformers());
 		return connected;
+	}
+	
+	public void connectPlugins() {
+		List<String> connected = connectGeoWorldPluginSuite();
+		Logger logger = GeoWorldMain.GetPluginContainer().getLogger();
+		logger.info("Generator is now using the following Plugins");
+		for(String plugin : connected) {
+			logger.info("Connected :" + plugin);
+		}
 	}
 	
 	private List<String> connectGenerators() {

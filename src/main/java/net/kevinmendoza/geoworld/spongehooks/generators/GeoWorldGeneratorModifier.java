@@ -34,7 +34,7 @@ import net.kevinmendoza.geoworldlibrary.utilities.Debug;
 import net.kevinmendoza.geoworldlibrary.utilities.IGeoWorldPlugin;
 import net.kevinmendoza.geoworldlibrary.utilities.IGeoWorldRockTransformer;
 
-public class GeoWorldGeneratorModifier  {
+class GeoWorldGeneratorModifier  {
 
 	@Inject
 	protected IGeneratorDefaults generatorDefaults;
@@ -46,10 +46,8 @@ public class GeoWorldGeneratorModifier  {
 	public GeoWorldGeneratorModifier() {
 	}
 
-	protected void removeDefaultOres(WorldGenerator generator) {
+	protected void removeVanillaBehaviors(WorldGenerator generator) {
 		applyGeneratorSettings(generator);
-		List<Populator> populators = generator.getPopulators();
-		populators.removeIf(p -> p.getType() == PopulatorTypes.ORE);
 		BiomeGenerationSettings settings;
 		for (BiomeType type : Sponge.getRegistry().getAllOf(BiomeType.class)) {
 			settings = generator.getBiomeSettings(type);
@@ -90,7 +88,7 @@ public class GeoWorldGeneratorModifier  {
 		List<String> order = generatorDefaults.getIDOrder();
 		for(String generatorOrder : order) {
 			for(String generator : generators) {
-				if(generatorOrder.equalsIgnoreCase(generator)) {
+				if(generatorOrder.equalsIgnoreCase(generator) && pluginConnections.get(generatorOrder) !=null) {
 					pluginGenerators.add(pluginConnections.get(generatorOrder));
 					break;
 				}
@@ -100,7 +98,11 @@ public class GeoWorldGeneratorModifier  {
 	}
 	
 	protected IGeoWorldRockTransformer getTransformer() {
-		return pluginConnections.getRockTransformer();
+		IGeoWorldRockTransformer transformer = pluginConnections.getRockTransformer();
+		if(transformer==null) {
+			GeoWorldMain.GetPluginContainer().getLogger().info("NO GEO WORLD ROCK TRANSFORMER IS AVAILABLE!!");
+		}
+		return transformer;
 	}
 
 }
